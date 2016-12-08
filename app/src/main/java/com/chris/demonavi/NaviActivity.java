@@ -51,7 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class MainActivity extends Activity {
+public class NaviActivity extends Activity {
 
     public static final LatLng xxsdLatLng = new LatLng(30.2743630000,120.0740200000);//西溪湿地中心经纬度
     public static final LatLng zjcLatLng = new LatLng(30.2597190000,120.0676780000);//周家村经纬度
@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         SDKInitializer.initialize(getApplicationContext());
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_location);
+        setContentView(R.layout.activity_navi);
         // 地图初始化
         mMapView = (MapView) findViewById(R.id.bmapView);
         mBaiduMap = mMapView.getMap();
@@ -266,7 +266,7 @@ public class MainActivity extends Activity {
             @Override
             public void onGetDrivingRouteResult(DrivingRouteResult result) {
                 if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
-                    Toast.makeText(MainActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(NaviActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (result.error == SearchResult.ERRORNO.NO_ERROR) {
@@ -345,7 +345,7 @@ public class MainActivity extends Activity {
             @Override
             public void onGetDrivingRouteResult(DrivingRouteResult result) {
                 if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
-                    Toast.makeText(MainActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(NaviActivity.this, "抱歉，未找到结果", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (result.error == SearchResult.ERRORNO.NO_ERROR) {
@@ -516,7 +516,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                Toast.makeText(NaviActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -537,22 +537,22 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void run() {
-                        Toast.makeText(MainActivity.this, authinfo, Toast.LENGTH_LONG).show();
+                        Toast.makeText(NaviActivity.this, authinfo, Toast.LENGTH_LONG).show();
                     }
                 });
             }
 
             public void initSuccess() {
-                Toast.makeText(MainActivity.this, "百度导航引擎初始化成功", Toast.LENGTH_SHORT).show();
+                Toast.makeText(NaviActivity.this, "百度导航引擎初始化成功", Toast.LENGTH_SHORT).show();
                 initSetting();
             }
 
             public void initStart() {
-                Toast.makeText(MainActivity.this, "百度导航引擎初始化开始", Toast.LENGTH_SHORT).show();
+                Toast.makeText(NaviActivity.this, "百度导航引擎初始化开始", Toast.LENGTH_SHORT).show();
             }
 
             public void initFailed() {
-                Toast.makeText(MainActivity.this, "百度导航引擎初始化失败", Toast.LENGTH_SHORT).show();
+                Toast.makeText(NaviActivity.this, "百度导航引擎初始化失败", Toast.LENGTH_SHORT).show();
             }
 
 
@@ -626,7 +626,7 @@ public class MainActivity extends Activity {
                     return;
                 }
             }
-            Intent intent = new Intent(MainActivity.this, BNDemoGuideActivity.class);
+            Intent intent = new Intent(NaviActivity.this, BNDemoGuideActivity.class);
             Bundle bundle = new Bundle();
             bundle.putSerializable(ROUTE_PLAN_NODE, (BNRoutePlanNode) mBNRoutePlanNode);
             intent.putExtras(bundle);
@@ -637,7 +637,7 @@ public class MainActivity extends Activity {
         @Override
         public void onRoutePlanFailed() {
             // TODO Auto-generated method stub
-            Toast.makeText(MainActivity.this, "算路失败", Toast.LENGTH_SHORT).show();
+            Toast.makeText(NaviActivity.this, "算路失败", Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -43,7 +43,7 @@ public class BNDemoGuideActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		BNDemoMainActivity.activityList.add(this);
+		NaviActivity.activityList.add(this);
 		createHandler();
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 		}
@@ -72,7 +72,7 @@ public class BNDemoGuideActivity extends Activity {
 		if (intent != null) {
 			Bundle bundle = intent.getExtras();
 			if (bundle != null) {
-				mBNRoutePlanNode = (BNRoutePlanNode) bundle.getSerializable(BNDemoMainActivity.ROUTE_PLAN_NODE);
+				mBNRoutePlanNode = (BNRoutePlanNode) bundle.getSerializable(NaviActivity.ROUTE_PLAN_NODE);
 			}
 		}
 		//显示自定义图标
@@ -119,7 +119,7 @@ public class BNDemoGuideActivity extends Activity {
 		} else {
 			BNRouteGuideManager.getInstance().onDestroy();
 		}
-		BNDemoMainActivity.activityList.remove(this);
+		NaviActivity.activityList.remove(this);
 
 	}
 
