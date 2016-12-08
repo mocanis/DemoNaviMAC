@@ -30,11 +30,11 @@
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="avduXNBoMHlDFBtvtMnybySc5yfuDMWj" />
         <activity android:name=".MainActivity">
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN"/>-->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
 
-                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-            <!--</intent-filter>-->
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
         <service
             android:name="com.baidu.location.f"
@@ -44,11 +44,11 @@
         <activity
             android:name=".BNDemoMainActivity"
             android:configChanges="orientation|screenSize|keyboard|keyboardHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
         </activity>
         <activity
             android:name=".BNDemoGuideActivity"

@@ -33,9 +33,6 @@ public class BNDemoMainActivity extends Activity {
 
 	private static final String APP_FOLDER_NAME = "BNSDKSimpleDemo";
 
-	private Button mWgsNaviBtn = null;
-	private Button mGcjNaviBtn = null;
-	private Button mBdmcNaviBtn = null;
 	private Button mDb06ll = null;
 	private String mSDCardPath = null;
 
@@ -55,9 +52,6 @@ public class BNDemoMainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 
-		mWgsNaviBtn = (Button) findViewById(R.id.wgsNaviBtn);
-		mGcjNaviBtn = (Button) findViewById(R.id.gcjNaviBtn);
-		mBdmcNaviBtn = (Button) findViewById(R.id.bdmcNaviBtn);
 		mDb06ll = (Button) findViewById(R.id.mDb06llNaviBtn);
 		// 打开log开关
 		BNOuterLogUtil.setLogSwitcher(true);
@@ -77,42 +71,7 @@ public class BNDemoMainActivity extends Activity {
 
 	private void initListener() {
 
-		if (mWgsNaviBtn != null) {
-			mWgsNaviBtn.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View arg0) {
-					if (BaiduNaviManager.isNaviInited()) {
-						routeplanToNavi(CoordinateType.WGS84);
-					}
-				}
-
-			});
-		}
-		if (mGcjNaviBtn != null) {
-			mGcjNaviBtn.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View arg0) {
-					if (BaiduNaviManager.isNaviInited()) {
-						routeplanToNavi(CoordinateType.GCJ02);
-					}
-				}
-
-			});
-		}
-		if (mBdmcNaviBtn != null) {
-			mBdmcNaviBtn.setOnClickListener(new OnClickListener() {
-
-				@Override
-				public void onClick(View arg0) {
-
-					if (BaiduNaviManager.isNaviInited()) {
-						routeplanToNavi(CoordinateType.BD09_MC);
-					}
-				}
-			});
-		}
+//
 
 		if (mDb06ll != null) {
 			mDb06ll.setOnClickListener(new OnClickListener() {
@@ -245,24 +204,28 @@ public class BNDemoMainActivity extends Activity {
 		BNRoutePlanNode sNode = null;
 		BNRoutePlanNode eNode = null;
 		switch (coType) {
-			case GCJ02: {
-				sNode = new BNRoutePlanNode(116.30142, 40.05087, "百度大厦", null, coType);
-				eNode = new BNRoutePlanNode(116.39750, 39.90882, "北京天安门", null, coType);
-				break;
-			}
-			case WGS84: {
-				sNode = new BNRoutePlanNode(116.300821, 40.050969, "百度大厦", null, coType);
-				eNode = new BNRoutePlanNode(116.397491, 39.908749, "北京天安门", null, coType);
-				break;
-			}
-			case BD09_MC: {
-				sNode = new BNRoutePlanNode(12947471, 4846474, "百度大厦", null, coType);
-				eNode = new BNRoutePlanNode(12958160, 4825947, "北京天安门", null, coType);
-				break;
-			}
+//			case GCJ02: {
+//				sNode = new BNRoutePlanNode(116.30142, 40.05087, "百度大厦", null, coType);
+//				eNode = new BNRoutePlanNode(116.39750, 39.90882, "北京天安门", null, coType);
+//				break;
+//			}
+//			case WGS84: {
+//				sNode = new BNRoutePlanNode(116.300821, 40.050969, "百度大厦", null, coType);
+//				eNode = new BNRoutePlanNode(116.397491, 39.908749, "北京天安门", null, coType);
+//				break;
+//			}
+//			case BD09_MC: {
+//				sNode = new BNRoutePlanNode(12947471, 4846474, "百度大厦", null, coType);
+//				eNode = new BNRoutePlanNode(12958160, 4825947, "北京天安门", null, coType);
+//				break;
+//			}
 			case BD09LL: {
-				sNode = new BNRoutePlanNode(116.30784537597782, 40.057009624099436, "百度大厦", null, coType);
-				eNode = new BNRoutePlanNode(116.40386525193937, 39.915160800132085, "北京天安门", null, coType);
+//				public static final LatLng xxsdLatLng = new LatLng(30.2743630000,120.0740200000);//西溪湿地中心经纬度
+//				public static final LatLng zjcLatLng = new LatLng(30.2597190000,120.0676780000);//周家村经纬度
+//				public static final LatLng xxttLatLng = new LatLng(30.2709950000,120.0973130000);//西溪天堂
+				sNode = new BNRoutePlanNode(120.0676780000,30.2597190000,"周家村",null,coType);
+				eNode = new BNRoutePlanNode(120.0973130000,30.2709950000, "西溪天堂", null, coType);
+
 				break;
 			}
 			default:

@@ -1,7 +1,11 @@
 package com.chris.demonavi;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -35,6 +39,16 @@ import com.baidu.mapapi.search.route.PlanNode;
 import com.baidu.mapapi.search.route.RoutePlanSearch;
 import com.baidu.mapapi.search.route.TransitRouteResult;
 import com.baidu.mapapi.search.route.WalkingRouteResult;
+import com.baidu.navisdk.adapter.BNOuterLogUtil;
+import com.baidu.navisdk.adapter.BNOuterTTSPlayerCallback;
+import com.baidu.navisdk.adapter.BNRoutePlanNode;
+import com.baidu.navisdk.adapter.BNaviSettingManager;
+import com.baidu.navisdk.adapter.BaiduNaviManager;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class MainActivity extends Activity {
@@ -76,10 +90,24 @@ public class MainActivity extends Activity {
 
     int nowSearchType = -1 ; // 当前进行的检索，供判断浏览节点时结果使用。
 
-    String startNodeStr = "西二旗";
-    String endNodeStr = "龙泽";
     private TextView tv_desc;
 
+
+
+    public static List<Activity> activityList = new LinkedList<Activity>();
+
+    private static final String APP_FOLDER_NAME = "BNSDKSimpleDemo";
+
+    private Button mDb06ll = null;
+    private String mSDCardPath = null;
+
+    public static final String ROUTE_PLAN_NODE = "routePlanNode";
+    public static final String SHOW_CUSTOM_ITEM = "showCustomItem";
+    public static final String RESET_END_NODE = "resetEndNode";
+    public static final String VOID_MODE = "voidMode";
+    BNRoutePlanNode sNode = null;
+    BNRoutePlanNode eNode,zjcNode = new BNRoutePlanNode(120.0676780000,30.2597190000,"周家村",null,BNRoutePlanNode.CoordinateType.BD09LL);
+    BNRoutePlanNode xxttNode = new BNRoutePlanNode(120.0973130000,30.2709950000, "西溪天堂", null, BNRoutePlanNode.CoordinateType.BD09LL);
     @Override
     public void onCreate(Bundle savedInstanceState) {
         SDKInitializer.initialize(getApplicationContext());
@@ -102,6 +130,7 @@ public class MainActivity extends Activity {
                 }else {
                     locateAndDrawRoute(zjcLatLng);
                 }
+                eNode = zjcNode;
             }
         });
         findViewById(R.id.xixitiantang).setOnClickListener(new View.OnClickListener() {
@@ -112,9 +141,23 @@ public class MainActivity extends Activity {
                 }else {
                     locateAndDrawRoute(xxttLatLng);
                 }
+                eNode = xxttNode;
             }
         });
         tv_desc = (TextView) findViewById(R.id.tv_desc);
+
+
+        activityList.add(this);
+
+
+        mDb06ll = (Button) findViewById(R.id.navi);
+        // 打开log开关
+        BNOuterLogUtil.setLogSwitcher(true);
+
+        initListener();
+        if (initDirs()) {
+            initNavi();
+        }
     }
     private void locate(){
         // 开启定位图层
@@ -189,6 +232,7 @@ public class MainActivity extends Activity {
             if (isFirstLoc) {
                 isFirstLoc = false;
                 handleResult();
+                sNode = new BNRoutePlanNode(location.getLongitude(),location.getLatitude(),"我的位置",null,BNRoutePlanNode.CoordinateType.BD09LL);
             }
 
         }
@@ -391,4 +435,278 @@ public class MainActivity extends Activity {
         mMapView = null;
         super.onDestroy();
     }
+
+    private void initListener() {
+
+//
+
+        if (mDb06ll != null) {
+            mDb06ll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View arg0) {
+                    if (BaiduNaviManager.isNaviInited()) {
+                        routeplanToNavi(BNRoutePlanNode.CoordinateType.BD09LL);
+                    }
+                }
+            });
+        }
+
+
+    }
+
+
+    private boolean initDirs() {
+        mSDCardPath = getSdcardDir();
+        if (mSDCardPath == null) {
+            return false;
+        }
+        File f = new File(mSDCardPath, APP_FOLDER_NAME);
+        if (!f.exists()) {
+            try {
+                f.mkdir();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    String authinfo = null;
+
+    /**
+     * 内部TTS播报状态回传handler
+     */
+    private Handler ttsHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            int type = msg.what;
+            switch (type) {
+                case BaiduNaviManager.TTSPlayMsgType.PLAY_START_MSG: {
+                    showToastMsg("Handler : TTS play start");
+                    break;
+                }
+                case BaiduNaviManager.TTSPlayMsgType.PLAY_END_MSG: {
+                    showToastMsg("Handler : TTS play end");
+                    break;
+                }
+                default :
+                    break;
+            }
+        }
+    };
+
+    /**
+     * 内部TTS播报状态回调接口
+     */
+    private BaiduNaviManager.TTSPlayStateListener ttsPlayStateListener = new BaiduNaviManager.TTSPlayStateListener() {
+
+        @Override
+        public void playEnd() {
+            showToastMsg("TTSPlayStateListener : TTS play end");
+        }
+
+        @Override
+        public void playStart() {
+            showToastMsg("TTSPlayStateListener : TTS play start");
+        }
+    };
+
+    public void showToastMsg(final String msg) {
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void initNavi() {
+
+        BNOuterTTSPlayerCallback ttsCallback = null;
+
+        BaiduNaviManager.getInstance().init(this, mSDCardPath, APP_FOLDER_NAME, new BaiduNaviManager.NaviInitListener() {
+            @Override
+            public void onAuthResult(int status, String msg) {
+                if (0 == status) {
+                    authinfo = "key校验成功!";
+                } else {
+                    authinfo = "key校验失败, " + msg;
+                }
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, authinfo, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            public void initSuccess() {
+                Toast.makeText(MainActivity.this, "百度导航引擎初始化成功", Toast.LENGTH_SHORT).show();
+                initSetting();
+            }
+
+            public void initStart() {
+                Toast.makeText(MainActivity.this, "百度导航引擎初始化开始", Toast.LENGTH_SHORT).show();
+            }
+
+            public void initFailed() {
+                Toast.makeText(MainActivity.this, "百度导航引擎初始化失败", Toast.LENGTH_SHORT).show();
+            }
+
+
+        },  null, ttsHandler, ttsPlayStateListener);
+
+    }
+
+    private String getSdcardDir() {
+        if (Environment.getExternalStorageState().equalsIgnoreCase(Environment.MEDIA_MOUNTED)) {
+            return Environment.getExternalStorageDirectory().toString();
+        }
+        return null;
+    }
+
+    private void routeplanToNavi(BNRoutePlanNode.CoordinateType coType) {
+
+//        switch (coType) {
+////			case GCJ02: {
+////				sNode = new BNRoutePlanNode(116.30142, 40.05087, "百度大厦", null, coType);
+////				eNode = new BNRoutePlanNode(116.39750, 39.90882, "北京天安门", null, coType);
+////				break;
+////			}
+////			case WGS84: {
+////				sNode = new BNRoutePlanNode(116.300821, 40.050969, "百度大厦", null, coType);
+////				eNode = new BNRoutePlanNode(116.397491, 39.908749, "北京天安门", null, coType);
+////				break;
+////			}
+////			case BD09_MC: {
+////				sNode = new BNRoutePlanNode(12947471, 4846474, "百度大厦", null, coType);
+////				eNode = new BNRoutePlanNode(12958160, 4825947, "北京天安门", null, coType);
+////				break;
+////			}
+//            case BD09LL: {
+////				public static final LatLng xxsdLatLng = new LatLng(30.2743630000,120.0740200000);//西溪湿地中心经纬度
+////				public static final LatLng zjcLatLng = new LatLng(30.2597190000,120.0676780000);//周家村经纬度
+////				public static final LatLng xxttLatLng = new LatLng(30.2709950000,120.0973130000);//西溪天堂
+//                sNode = new BNRoutePlanNode(120.0676780000,30.2597190000,"周家村",null,coType);
+//                eNode = new BNRoutePlanNode(120.0973130000,30.2709950000, "西溪天堂", null, coType);
+//
+//                break;
+//            }
+//            default:
+//                ;
+//        }
+        if (sNode != null && eNode != null) {
+            List<BNRoutePlanNode> list = new ArrayList<BNRoutePlanNode>();
+            list.add(sNode);
+            list.add(eNode);
+            BaiduNaviManager.getInstance().launchNavigator(this, list, 1, false, new DemoRoutePlanListener(sNode));
+        }
+    }
+
+    public class DemoRoutePlanListener implements BaiduNaviManager.RoutePlanListener {
+
+        private BNRoutePlanNode mBNRoutePlanNode = null;
+
+        public DemoRoutePlanListener(BNRoutePlanNode node) {
+            mBNRoutePlanNode = node;
+        }
+
+        @Override
+        public void onJumpToNavigator() {
+			/*
+			 * 设置途径点以及resetEndNode会回调该接口
+			 */
+
+            for (Activity ac : activityList) {
+
+                if (ac.getClass().getName().endsWith("BNDemoGuideActivity")) {
+
+                    return;
+                }
+            }
+            Intent intent = new Intent(MainActivity.this, BNDemoGuideActivity.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable(ROUTE_PLAN_NODE, (BNRoutePlanNode) mBNRoutePlanNode);
+            intent.putExtras(bundle);
+            startActivity(intent);
+
+        }
+
+        @Override
+        public void onRoutePlanFailed() {
+            // TODO Auto-generated method stub
+            Toast.makeText(MainActivity.this, "算路失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void initSetting(){
+        // 设置是否双屏显示
+        BNaviSettingManager.setShowTotalRoadConditionBar(BNaviSettingManager.PreViewRoadCondition.ROAD_CONDITION_BAR_SHOW_ON);
+        // 设置导航播报模式
+        BNaviSettingManager.setVoiceMode(BNaviSettingManager.VoiceMode.Veteran);
+        // 是否开启路况
+        BNaviSettingManager.setRealRoadCondition(BNaviSettingManager.RealRoadCondition.NAVI_ITS_ON);
+    }
+
+    private BNOuterTTSPlayerCallback mTTSCallback = new BNOuterTTSPlayerCallback() {
+
+        @Override
+        public void stopTTS() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "stopTTS");
+        }
+
+        @Override
+        public void resumeTTS() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "resumeTTS");
+        }
+
+        @Override
+        public void releaseTTSPlayer() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "releaseTTSPlayer");
+        }
+
+        @Override
+        public int playTTSText(String speech, int bPreempt) {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "playTTSText" + "_" + speech + "_" + bPreempt);
+
+            return 1;
+        }
+
+        @Override
+        public void phoneHangUp() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "phoneHangUp");
+        }
+
+        @Override
+        public void phoneCalling() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "phoneCalling");
+        }
+
+        @Override
+        public void pauseTTS() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "pauseTTS");
+        }
+
+        @Override
+        public void initTTSPlayer() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "initTTSPlayer");
+        }
+
+        @Override
+        public int getTTSState() {
+            // TODO Auto-generated method stub
+            Log.e("test_TTS", "getTTSState");
+            return 1;
+        }
+    };
 }
